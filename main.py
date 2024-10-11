@@ -47,27 +47,23 @@ accounts = [
     ('+447563041929  ', 'session_45'),
     ('+447763916635  ', 'session_47'),
     ('+447932516781  ', 'session_48'),
-
-
 ]
 
-# Kaynak gruplar (ogedayprochat ve ekremabianalizsohbet) ve hedef grup (101casinogrubu) chat id'leri
-source_groups = ['https://t.me/ogedayprochat', 'https://t.me/ekremabianalizsohbet','https://t.me/hebelehubsohbet']  # Mesajların çekileceği gruplar
+# Kaynak gruplar ve hedef grup
+source_groups = ['https://t.me/ogedayprochat', 'https://t.me/ekremabianalizsohbet', 'https://t.me/hebelehubsohbet']  # Mesajların çekileceği gruplar
 target_group = 'https://t.me/rouletteacademyturkey'  # Mesajların gönderileceği grup
 
 # Yasaklı kelimeler listesi
-banned_keywords = ['ekremabi', 'OgedayPRO', 'ogeday', '!orisbet', '!fixbet','!olaycasino','!enbet','!betplay','!gamobet']
+banned_keywords = ['ekremabi', 'OgedayPRO', 'ogeday', '!orisbet', '!fixbet', '!olaycasino', '!enbet', '!betplay', '!gamobet']
 
 
 # Telegram istemcilerini başlatmak için async fonksiyonu
 async def start_clients():
     clients = []
-
     for phone_number, session_name in accounts:
         client = TelegramClient(session_name, api_id, api_hash)
         await client.start(phone_number)
         clients.append(client)
-
     return clients
 
 
@@ -78,7 +74,7 @@ def is_valid_message(message):
     if re.search(url_pattern, message.text):
         return False
 
-    # Medya içerikli mesajları (fotoğraf, video vs.) filtrele
+    # Medya içerikli mesajları filtrele
     if message.media:
         return False
 
@@ -92,7 +88,6 @@ def is_valid_message(message):
 
 # Kaynak gruplardan gelen mesajları hedef gruba gönderme fonksiyonu
 async def forward_messages(clients):
-    global source_client
     client_index = 0  # Hesap döngüsünü başlatmak için başlangıç indeksi
 
     for source_group in source_groups:
@@ -103,10 +98,13 @@ async def forward_messages(clients):
             nonlocal client_index
             message = event.message
 
-            # Sadece geçerli mesajları (sohbet mesajları) al
+            # Sadece geçerli mesajları al
             if is_valid_message(message):
-                # Hedef gruba mesajı gönder
+                # Mesajı hedef gruba gönder
                 await clients[client_index].send_message(target_group, message.text)
+
+                # Mesajlar arasında bekleme süresi ekleyin (1-2 saniye)
+                await asyncio.sleep(1)  # Çok hızlı mesaj göndermeyi engeller ve mesajları akıcı hale getirir
 
                 # Hesabı değiştir ve sıradaki hesaba geç
                 client_index = (client_index + 1) % len(clients)
