@@ -1,5 +1,4 @@
 from telethon import TelegramClient, events
-import asyncio
 import re
 
 # Telegram API bilgileri - https://my.telegram.org/apps üzerinden alınabilir.
@@ -56,7 +55,6 @@ target_group = 'https://t.me/rouletteacademyturkey'  # Mesajların gönderilece�
 # Yasaklı kelimeler listesi
 banned_keywords = ['ekremabi', 'OgedayPRO', 'ogeday', '!orisbet', '!fixbet', '!olaycasino', '!enbet', '!betplay', '!gamobet']
 
-
 # Telegram istemcilerini başlatmak için async fonksiyonu
 async def start_clients():
     clients = []
@@ -65,7 +63,6 @@ async def start_clients():
         await client.start(phone_number)
         clients.append(client)
     return clients
-
 
 # URL, medya ve yasaklı kelimeler içeren mesajları filtreleyen fonksiyon
 def is_valid_message(message):
@@ -85,7 +82,6 @@ def is_valid_message(message):
 
     return True
 
-
 # Kaynak gruplardan gelen mesajları hedef gruba gönderme fonksiyonu
 async def forward_messages(clients):
     client_index = 0  # Hesap döngüsünü başlatmak için başlangıç indeksi
@@ -100,26 +96,28 @@ async def forward_messages(clients):
 
             # Sadece geçerli mesajları al
             if is_valid_message(message):
-                # Mesajı hedef gruba gönder
-                await clients[client_index].send_message(target_group, message.text)
+                try:
+                    # Mesajı hedef gruba hızlı bir şekilde gönder
+                    await clients[client_index].send_message(target_group, message.text)
 
-                # Mesajlar arasında bekleme süresi ekleyin (1-2 saniye)
-                await asyncio.sleep(1)  # Çok hızlı mesaj göndermeyi engeller ve mesajları akıcı hale getirir
+                    # Hesabı hemen değiştir ve sıradaki hesaba geç
+                    client_index = (client_index + 1) % len(clients)
 
-                # Hesabı değiştir ve sıradaki hesaba geç
-                client_index = (client_index + 1) % len(clients)
+                except Exception as e:
+                    print(f"Hata oluştu: {e}")
+                    # Eğer bir hata varsa, sıradaki hesaba geç
+                    client_index = (client_index + 1) % len(clients)
 
         print(f"Mesajlar {source_group} grubundan çekilmeye başlandı...")
 
     await source_client.run_until_disconnected()
-
 
 # Ana fonksiyon
 async def main():
     clients = await start_clients()
     await forward_messages(clients)
 
-
 # Botu başlat
 if __name__ == '__main__':
+    import asyncio
     asyncio.run(main())
