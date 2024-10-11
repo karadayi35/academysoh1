@@ -1,4 +1,5 @@
 from telethon import TelegramClient, events
+import asyncio
 import re
 
 # Telegram API bilgileri - https://my.telegram.org/apps üzerinden alınabilir.
@@ -7,7 +8,7 @@ api_hash = '6611d0556f6f8dc7b9190803cc442dec'  # Telegram API Hash
 
 # Kullanacağınız hesapların telefon numaraları ve session isimleri
 accounts = [
-    ('+447599168809 ', 'session_1'),
+   ('+447599168809 ', 'session_1'),
     ('+447957201395 ', 'session_2'),
     ('+447903319837 ', 'session_4'),
     ('+447879090554 ', 'session_5'),
