@@ -51,7 +51,7 @@ accounts = [
 ]
 
 # Kaynak gruplar ve hedef grup
-source_groups = ['https://t.me/ogedayprochat', 'https://t.me/ekremabianalizsohbet', 'https://t.me/mackolikcanlisohbet']
+source_groups = ['https://t.me/ogedayprochat', 'https://t.me/ekremabianalizsohbet']
 target_group = 'https://t.me/rouletteacademyturkey'
 
 # Yasaklı kelimeler listesi
