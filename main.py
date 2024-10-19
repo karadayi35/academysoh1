@@ -49,8 +49,8 @@ accounts = [
 ]
 
 # Kaynak gruplar ve hedef grup
-source_groups = ['https://t.me/ogedayprochat', 'https://t.me/ekremabianalizsohbet', 'https://t.me/hebelehubsohbet']  # Mesajların çekileceği gruplar
-target_group = 'https://t.me/rouletteacademyturkey'  # Mesajların gönderileceği grup
+source_groups = ['https://t.me/ogedayprochat', 'https://t.me/ekremabianalizsohbet', 'https://t.me/hebelehubsohbet']
+target_group = 'https://t.me/rouletteacademyturkey'
 
 # Yasaklı kelimeler listesi
 banned_keywords = ['ekremabi', 'OgedayPRO', 'ogeday', '!orisbet', '!fixbet', '!olaycasino', '!enbet', '!betplay', '!gamobet']
@@ -66,20 +66,14 @@ async def start_clients():
 
 # URL, medya ve yasaklı kelimeler içeren mesajları filtreleyen fonksiyon
 def is_valid_message(message):
-    # URL içeren mesajları filtrele
     url_pattern = r'(https?://\S+|www\.\S+)'
     if re.search(url_pattern, message.text):
         return False
-
-    # Medya içerikli mesajları filtrele
     if message.media:
         return False
-
-    # Yasaklı kelimeler içeren mesajları filtrele
     for keyword in banned_keywords:
         if keyword.lower() in message.text.lower():
             return False
-
     return True
 
 # Kaynak gruplardan gelen mesajları hedef gruba gönderme fonksiyonu
