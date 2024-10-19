@@ -9,7 +9,7 @@ api_hash = '6611d0556f6f8dc7b9190803cc442dec'  # Telegram API Hash
 
 # Kullanacağınız hesapların telefon numaraları ve session isimleri
 accounts = [
-   ('+447599168809 ', 'session_1'),
+    ('+447599168809 ', 'session_1'),
     ('+447957201395 ', 'session_2'),
     ('+447903319837 ', 'session_4'),
     ('+447879090554 ', 'session_5'),
@@ -47,15 +47,15 @@ accounts = [
     ('+447951829503  ', 'session_44'),
     ('+447563041929  ', 'session_45'),
     ('+447763916635  ', 'session_47'),
-    ('+447932516781  ', 'session_48'),
+    ('+447932516781  ', 'session_48'),.
 ]
 
 # Kaynak gruplar ve hedef grup
-source_groups = ['https://t.me/ogedayprochat', 'https://t.me/ekremabianalizsohbet', 'https://t.me/hebelehubsohbet']
+source_groups = ['https://t.me/ogedayprochat', 'https://t.me/ekremabianalizsohbet', 'https://t.me/mackolikcanlisohbet']
 target_group = 'https://t.me/rouletteacademyturkey'
 
 # Yasaklı kelimeler listesi
-banned_keywords = ['ekremabi', 'OgedayPRO', 'ogeday', '!orisbet', '!fixbet', '!olaycasino', '!enbet', '!betplay', '!gamobet']
+banned_keywords = ['ekremabi', 'ekrem' 'OgedayPRO', 'ogeday', '!orisbet', '!fixbet', '!olaycasino', '!enbet', '!betplay', '!gamobet']
 
 # Telegram istemcilerini başlatmak için async fonksiyonu
 async def start_clients():
@@ -83,35 +83,34 @@ async def forward_messages(clients):
     client_index = 0  # Hesap döngüsünü başlatmak için başlangıç indeksi
 
     for source_group in source_groups:
-        source_client = clients[client_index]
+        for source_client in clients:  # Tüm hesaplar için döngü başlatılır
+            @source_client.on(events.NewMessage(chats=source_group))
+            async def handler(event):
+                nonlocal client_index
+                message = event.message
 
-        @source_client.on(events.NewMessage(chats=source_group))
-        async def handler(event):
-            nonlocal client_index
-            message = event.message
+                # Sadece geçerli mesajları al
+                if is_valid_message(message):
+                    try:
+                        # Mesajı hedef gruba gönderirken farklı hesaplar arasında döngü yap
+                        await clients[client_index].send_message(target_group, message.text)
 
-            # Sadece geçerli mesajları al
-            if is_valid_message(message):
-                try:
-                    # Mesajı hedef gruba gönderirken farklı hesaplar arasında döngü yap
-                    await clients[client_index].send_message(target_group, message.text)
+                        # Hesapları sırayla döndür
+                        client_index = (client_index + 1) % len(clients)
 
-                    # Hesapları sırayla döndür
-                    client_index = (client_index + 1) % len(clients)
+                    except FloodWaitError as e:
+                        # Eğer bir flood wait hatası varsa, belirtilen süre boyunca bekle
+                        print(f"Flood wait error: {e.seconds} saniye bekleniyor...")
+                        await asyncio.sleep(e.seconds)
 
-                except FloodWaitError as e:
-                    # Eğer bir flood wait hatası varsa, belirtilen süre boyunca bekle
-                    print(f"Flood wait error: {e.seconds} saniye bekleniyor...")
-                    await asyncio.sleep(e.seconds)
+                    except Exception as e:
+                        print(f"Hata oluştu: {e}")
+                        # Diğer hatalarda sıradaki hesaba geç
+                        client_index = (client_index + 1) % len(clients)
 
-                except Exception as e:
-                    print(f"Hata oluştu: {e}")
-                    # Diğer hatalarda sıradaki hesaba geç
-                    client_index = (client_index + 1) % len(clients)
+            print(f"Mesajlar {source_group} grubundan çekilmeye başlandı...")
 
-        print(f"Mesajlar {source_group} grubundan çekilmeye başlandı...")
-
-    await source_client.run_until_disconnected()
+    await asyncio.gather(*[client.run_until_disconnected() for client in clients])
 
 # Ana fonksiyon
 async def main():
