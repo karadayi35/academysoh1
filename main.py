@@ -47,15 +47,15 @@ accounts = [
     ('+447951829503  ', 'session_44'),
     ('+447563041929  ', 'session_45'),
     ('+447763916635  ', 'session_47'),
-    ('+447932516781  ', 'session_48'),.
+    ('+447932516781  ', 'session_48'),
 ]
 
 # Kaynak gruplar ve hedef grup
-source_groups = ['https://t.me/ogedayprochat', 'https://t.me/ekremabianalizsohbet']
+source_groups = ['https://t.me/ogedayprochat', 'https://t.me/ekremabianalizsohbet', 'https://t.me/hebelehubsohbet']
 target_group = 'https://t.me/rouletteacademyturkey'
 
 # Yasaklı kelimeler listesi
-banned_keywords = ['ekremabi', 'ekrem' 'OgedayPRO', 'ogeday', '!orisbet', '!fixbet', '!olaycasino', '!enbet', '!betplay', '!gamobet']
+banned_keywords = ['ekremabi', 'OgedayPRO', 'ogeday', '!orisbet', '!fixbet', '!olaycasino', '!enbet', '!betplay', '!gamobet']
 
 # Telegram istemcilerini başlatmak için async fonksiyonu
 async def start_clients():
@@ -83,34 +83,35 @@ async def forward_messages(clients):
     client_index = 0  # Hesap döngüsünü başlatmak için başlangıç indeksi
 
     for source_group in source_groups:
-        for source_client in clients:  # Tüm hesaplar için döngü başlatılır
-            @source_client.on(events.NewMessage(chats=source_group))
-            async def handler(event):
-                nonlocal client_index
-                message = event.message
+        source_client = clients[client_index]
 
-                # Sadece geçerli mesajları al
-                if is_valid_message(message):
-                    try:
-                        # Mesajı hedef gruba gönderirken farklı hesaplar arasında döngü yap
-                        await clients[client_index].send_message(target_group, message.text)
+        @source_client.on(events.NewMessage(chats=source_group))
+        async def handler(event):
+            nonlocal client_index
+            message = event.message
 
-                        # Hesapları sırayla döndür
-                        client_index = (client_index + 1) % len(clients)
+            # Sadece geçerli mesajları al
+            if is_valid_message(message):
+                try:
+                    # Mesajı hedef gruba gönderirken farklı hesaplar arasında döngü yap
+                    await clients[client_index].send_message(target_group, message.text)
 
-                    except FloodWaitError as e:
-                        # Eğer bir flood wait hatası varsa, belirtilen süre boyunca bekle
-                        print(f"Flood wait error: {e.seconds} saniye bekleniyor...")
-                        await asyncio.sleep(e.seconds)
+                    # Hesapları sırayla döndür
+                    client_index = (client_index + 1) % len(clients)
 
-                    except Exception as e:
-                        print(f"Hata oluştu: {e}")
-                        # Diğer hatalarda sıradaki hesaba geç
-                        client_index = (client_index + 1) % len(clients)
+                except FloodWaitError as e:
+                    # Eğer bir flood wait hatası varsa, belirtilen süre boyunca bekle
+                    print(f"Flood wait error: {e.seconds} saniye bekleniyor...")
+                    await asyncio.sleep(e.seconds)
 
-            print(f"Mesajlar {source_group} grubundan çekilmeye başlandı...")
+                except Exception as e:
+                    print(f"Hata oluştu: {e}")
+                    # Diğer hatalarda sıradaki hesaba geç
+                    client_index = (client_index + 1) % len(clients)
 
-    await asyncio.gather(*[client.run_until_disconnected() for client in clients])
+        print(f"Mesajlar {source_group} grubundan çekilmeye başlandı...")
+
+    await source_client.run_until_disconnected()
 
 # Ana fonksiyon
 async def main():
