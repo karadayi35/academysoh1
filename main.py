@@ -50,7 +50,7 @@ accounts = [
 ]
 
 # Kaynak gruplar ve hedef grup
-source_groups = ['https://t.me/ogedayprochat', 'https://t.me/ekremabianalizsohbet', ]  # Mesajların çekileceği gruplar
+source_groups = ['https://t.me/ogedaychat', 'https://t.me/ekremabianalizsohbet', ]  # Mesajların çekileceği gruplar
 target_group = 'https://t.me/rouletteacademyturkey'  # Mesajların gönderileceği grup
 
 # Yasaklı kelimeler listesi
