@@ -1,8 +1,9 @@
 from telethon import TelegramClient, events
+from telethon.errors import FloodWaitError
 import asyncio
 import re
 
-# Telegram API bilgileri - https://my.telegram.org/apps üzerinden alınabilir.
+# Telegram API bilgileri
 api_id = '16200120'  # Telegram API ID
 api_hash = '6611d0556f6f8dc7b9190803cc442dec'  # Telegram API Hash
 
@@ -50,12 +51,11 @@ accounts = [
 ]
 
 # Kaynak gruplar ve hedef grup
-source_groups = ['https://t.me/ogedaychat', 'https://t.me/ekremabianalizsohbet' ]  # Mesajların çekileceği gruplar
-target_group = 'https://t.me/rouletteacademyturkey'  # Mesajların gönderileceği grup
+source_groups = ['https://t.me/ogedaychat', 'https://t.me/ekremabianalizsohbet']
+target_group = 'https://t.me/rouletteacademyturkey'
 
 # Yasaklı kelimeler listesi
 banned_keywords = ['ekremabi', 'OgedayPRO', 'ogeday', '!orisbet', '!fixbet', '!olaycasino', '!enbet', '!betplay', '!gamobet']
-
 
 # Telegram istemcilerini başlatmak için async fonksiyonu
 async def start_clients():
@@ -66,25 +66,17 @@ async def start_clients():
         clients.append(client)
     return clients
 
-
 # URL, medya ve yasaklı kelimeler içeren mesajları filtreleyen fonksiyon
 def is_valid_message(message):
-    # URL içeren mesajları filtrele
     url_pattern = r'(https?://\S+|www\.\S+)'
     if re.search(url_pattern, message.text):
         return False
-
-    # Medya içerikli mesajları filtrele
     if message.media:
         return False
-
-    # Yasaklı kelimeler içeren mesajları filtrele
     for keyword in banned_keywords:
         if keyword.lower() in message.text.lower():
             return False
-
     return True
-
 
 # Kaynak gruplardan gelen mesajları hedef gruba gönderme fonksiyonu
 async def forward_messages(clients):
@@ -100,26 +92,33 @@ async def forward_messages(clients):
 
             # Sadece geçerli mesajları al
             if is_valid_message(message):
-                # Mesajı hedef gruba gönder
-                await clients[client_index].send_message(target_group, message.text)
+                try:
+                    # Mesajı hedef gruba gönderirken farklı hesaplar arasında döngü yap
+                    await clients[client_index].send_message(target_group, message.text)
 
-                # Mesajlar arasında bekleme süresi ekleyin (1-2 saniye)
-                await asyncio.sleep(1)  # Çok hızlı mesaj göndermeyi engeller ve mesajları akıcı hale getirir
+                    # Hesapları sırayla döndür
+                    client_index = (client_index + 1) % len(clients)
 
-                # Hesabı değiştir ve sıradaki hesaba geç
-                client_index = (client_index + 1) % len(clients)
+                except FloodWaitError as e:
+                    # Eğer bir flood wait hatası varsa, belirtilen süre boyunca bekle
+                    print(f"Flood wait error: {e.seconds} saniye bekleniyor...")
+                    await asyncio.sleep(e.seconds)
+
+                except Exception as e:
+                    print(f"Hata oluştu: {e}")
+                    # Diğer hatalarda sıradaki hesaba geç
+                    client_index = (client_index + 1) % len(clients)
 
         print(f"Mesajlar {source_group} grubundan çekilmeye başlandı...")
 
     await source_client.run_until_disconnected()
-
 
 # Ana fonksiyon
 async def main():
     clients = await start_clients()
     await forward_messages(clients)
 
-
 # Botu başlat
 if __name__ == '__main__':
+    import asyncio
     asyncio.run(main())
